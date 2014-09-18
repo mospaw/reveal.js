@@ -102,6 +102,25 @@
 <section data-markdown>
 	# Invoking WP-FASE
 
+	`cd` to the folder where WP-FASE is checked out.  
+	`php extract.php [options]`
+
+	## Options
+
+	Some options, such as the directory, are required. The following options are available:
+
+	```json
+	-d  path to the directory to traverse. REQUIRED
+
+	-r  text to remove from file paths in output. Defaults to value given in '-d' 
+	    if not specified.
+
+	-f  File Types, comma separated (no spaces). Defaults to 'php,inc'.
+
+	-t  Output Type. HTML, JSON or text. Defaults to HTML. Invalid values go to 
+	    default.
+	```
+
 </section>
 
 
