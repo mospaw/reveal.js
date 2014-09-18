@@ -4,10 +4,9 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>WP-FASE - </title>
+		<title>WP-FASE - Documentation for Hookers</title>
 
-		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
-		<meta name="author" content="Hakim El Hattab">
+		<meta name="author" content="Chris Mospaw">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -54,9 +53,10 @@
 	# The Problem
 
 	- WordPress Hooks (filters and actions) are extremely powerful
-	- They are also complex with “lots of moving parts”. 
+	- They are also complex with "lots of moving parts"
+	- Finding them in any given code is laborious
 
-	Diagnosing problems can require a lot of manual work. Having a road map of these calls 
+	Having a road map of the following calls 
 	for a particular code base would be handy:
 
 	- `add_action`
@@ -74,7 +74,7 @@
 
 	- There is no easy or automatic way to capture the various hooks and calls to them in WordPress code. 
 	- Documentation for plugins and themes can be weak or non-existent.
-	- Documentation tools like _phpDoucmentor_  don’t go “inside” functions where most of the hooks and related calls are located
+	- Tools like _phpDoucmentor_  don't go "inside" functions where many of the hooks and related calls are located
 	
 	## Conclusion
 
@@ -86,7 +86,7 @@
 <section data-markdown>
 	# The solution: WP-FASE
 
-	What is it?
+	OOOH! Shiny! __But what is it?__
 	
 	- **W**ord**P**ress 
 	- **F**ilter and 
@@ -96,7 +96,7 @@
 
 	## And it does?
 
-	WP-FASE traverses an arbitrary given folder to find all instances of WordPress hooks. It has HTML, JSON, or plain text output. 
+	WP-FASE traverses an arbitrary given folder to find all instances of WordPress hooks. It has `HTML`, `JSON`, or plain text output. 
 </section>
 
 <section data-markdown>
@@ -107,7 +107,7 @@
 
 	## Options
 
-	Some options, such as the directory, are required. The following options are available:
+	Some options, such as the directory to be processed, are currently required. The following options are available:
 
 	```json
 	-d  path to the directory to traverse. REQUIRED
@@ -127,14 +127,14 @@
 <section data-markdown>
 	# What does it do?
 
-	The overall approach is to analyze code and extract only the parts we needed.
+	WP-FASE analyzes code and extracts only the parts we need, keeping the context.
 
 	- This is much easier said than done. 
-	- Code can be pretty complicated. 
+	- Code structure can be pretty complicated, not to mention arbitrary. 
 
 	## RegEx to the Rescue?
 
-	The initial appraoch was starting to look like we were going to be in Regular Expression hell for the foreseeable future. RegEx is complicated enough
+	The initial approach was Regular Expressions. It also looked like RegEx hell for the foreseeable future. RegEx is complicated enough
 	without analyzing lots of code, trying to figure out how to get parameters, docblocks, and other goodies related to the hook calls.
 
 </section>
@@ -151,14 +151,15 @@
 
 		## So what does Tokenizing do?
 
-		Tokenizing splits any arbitrary PHP source into an array of tokens. These PHP tokens are valuable pieces of information and eliminate the need for regular expressions and lexical gymnastics.
+		- Splits any arbitrary PHP source into an array of tokens. 
+		- PHP tokens are valuable pieces of information
+		- Eliminate the need for regular expressions and lexical gymnastics
 
 	</section>
 
 
 	<section data-markdown data-background="#006600" style="background: transparent;">
-		# _Coder Zone:_  
-		# What’s in a token?
+		# _Coder Zone:_ What's in a token?
 
 		The tokens returned by PHP's tokenizer contain either a single character (`;`, `.`, `&gt;`, `!`, etc.) or a three-element array containing:
 
@@ -305,7 +306,13 @@
 
 	The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
 	
-	There are output processors for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
+	There are currently output processors for
+
+	- `HTML` (one big file)
+	- `JSON`
+	- plain text
+
+	Other output formats are easy to generate...
 </section>
 
 <section data-markdown>
@@ -333,6 +340,9 @@
 
 	## This presentation deck
 	- __http://mospaw.com/wp-fase-reveal__
+
+	## PHP Tokenizer
+	- __http://www.php.net/manual/en/function.token-get-all.php__
 
 </section>
 
