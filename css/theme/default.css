@@ -102,9 +102,10 @@ body {
 
 
 .reveal section p {
-  margin-left: 30px;
-  margin-right: 30px;
-  margin-top: 1em;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-top: .8em;
+  padding: 0;
 }
 
 .reveal a:hover img {
@@ -166,17 +167,28 @@ body {
 
 
 .reveal section h1 {
-  font-size: 64px; 
+  font-size: 84px; 
 }
 .reveal section h2 {
-  font-size: 48px; 
-  margin-top: .25em;
+  font-size: 56px; 
+  margin-top: 1.0em;
+  margin-bottom: .2em;
+}
+
+.reveal section p {
+	font-size: 44px;
+	line-height: 1.1;
 }
 
 .reveal section b, .reveal section strong {
   color: #ffc;
 
 }
+
+.reveal section pre {
+  font-size: 26px; 
+}
+
 
 .reveal tt, .reveal code {
   font-family: "Source Code Pro", sans-serif;
@@ -190,10 +202,13 @@ body {
 }
 
 
+
 .reveal section ul {
   margin: 0 30px 0 3em;
   padding: 0;
   list-style: square;
+  font-size: 44px;
+	line-height: 1.1;
 }
 .reveal section li {
   margin-bottom: .33em;
@@ -208,13 +223,16 @@ body {
 
 .reveal section.title h1 {
   padding-top: 200px;
-  font-size: 96px;
+  font-size: 200px;
+  text-align: center;
 }
 .reveal section.title h5 {
-  font-size: 48px;
+  font-size: 64px;
+  text-align: center;
 }
 .reveal section.title h6 {
   padding-top: 50px;
   font-size: 36px;
+  text-align: center;
 }
 

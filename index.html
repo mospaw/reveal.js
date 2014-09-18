@@ -134,7 +134,8 @@
 
 	## RegEx to the Rescue?
 
-	The initial appraoch was starting to look like we were going to be in Regular Expression hell for the foreseeable future, analyzing lots of code, trying to figure out how to get parameters, docblocks and other goodies related to the hook calls.
+	The initial appraoch was starting to look like we were going to be in Regular Expression hell for the foreseeable future. RegEx is complicated enough
+	without analyzing lots of code, trying to figure out how to get parameters, docblocks, and other goodies related to the hook calls.
 
 </section>
 
@@ -150,13 +151,14 @@
 
 		## So what does Tokenizing do?
 
-		The tokenizer splits any arbitrary PHP source into an array of PHP tokens. These PHP tokens are very valuable pieces of information and eliminate the need for complicated regular expressions and other lexical gymnastics.
+		Tokenizing splits any arbitrary PHP source into an array of tokens. These PHP tokens are valuable pieces of information and eliminate the need for regular expressions and lexical gymnastics.
 
 	</section>
 
 
 	<section data-markdown data-background="#006600" style="background: transparent;">
-		# _Coder Zone:_ What’s in a token?
+		# _Coder Zone:_  
+		# What’s in a token?
 
 		The tokens returned by PHP's tokenizer contain either a single character (`;`, `.`, `&gt;`, `!`, etc.) or a three-element array containing:
 
@@ -170,7 +172,8 @@
 	</section>
 
 	<section data-markdown data-background="#006600" style="background: transparent;">
-		# _Coder Zone:_ Even more token information...
+		# _Coder Zone:_ 
+		# More token information
 
 		The token index is a numeric value that reveals the part of the PHP language that was found. The `token_name($value)` function returns the symbolic name (`T_*`) for the given numeric value. 
 
@@ -183,7 +186,8 @@
 	</section>
 
 	<section data-markdown data-background="#006600" style="background: transparent;">
-		# _Coder Zone:_ Token examples
+		# _Coder Zone:_ 
+		# Token examples
 
 		Examples of raw tokens.
 
@@ -194,8 +198,9 @@
 
 		[0] =&gt; 367 (T_DOC_COMMENT)
 		[1] =&gt; /**
-		 * Front to the WordPress application. This file doesn&#39;t do anything, but loads
-		 * wp-blog-header.php which does and tells WordPress to load the theme.
+		 * Front to the WordPress application. This file doesn&#39;t do anything, 
+		 * but loads wp-blog-header.php which does and tells WordPress to load 
+		 * the theme.
 		 *
 		 * @package WordPress
 		 */
@@ -230,74 +235,106 @@
 
 </section>
 
-<section data-markdown>
-	# Parser Processors 
+<section  class="transparent">
+	<section>
+		<h1>Parsing the Hooks</h1>
 
-	Each hook type we are looking for has a separate processor due to the various syntaxes, but they behave more or less the same putting found information into two arrays, one indexed by the hook name and another indexed by filename and line number.
+		<p>Hook functions: <code>add_action</code>, <code>add_filter</code>, <code>apply_filters</code>, <code>do_action</code>, <code>do_action_ref_array</code>
+		<ul>
+		<li>Each one has a slightly different syntax, so they get their own processors </li>
+		<li>Processors behave in more or less the same way:
+			<ul>
+			<li>Add found information into two arrays</li>
+			<li>Array 1 indexed by the hook name </li>
+			<li>Array 2 indexed by filename and line number</li>
+		</ul>
+		</li>
+		<li>There is also a generic processor the hook processors call to get call parameters and docblocks.</li>
+		</ul>
+	</section>
 
-	There are actually two levels of processors, a generic one and a hook-specific one. The hook-specific processors call the generic one to get call parameters and docblocks.
 
-</section>
+	<section data-markdown data-background="#006600" style="background: transparent;">
+	# _Coder Zone:_  
+	# Example Array Data
 
+	```
+	[wp_head] =&gt; Array
+	    [0] =&gt; Array
+	      [token] =&gt; Array
+	        [0] =&gt; 307
+	        [1] =&gt; add_action
+	        [2] =&gt; 47
+	      [file] =&gt; Array
+	        [dir] =&gt; ../wp
+	        [file] =&gt; wp-activate.php
+	        [fullpath] =&gt; ../wp/wp-activate.php
+	        [friendly_name] =&gt; wp-activate.php
 
-<section data-markdown>
-	#Post-processing
-
-	Once the large data arrays are gathered, the output is gathered and sent out. The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
+	      [hook] =&gt; wp_head
+	      [function_to_add] =&gt; &#39;do_activate_header&#39;
+	      [priority] =&gt; 10 (default)
+	      [arguments] =&gt; 1 (default)
+	    [1] =&gt; Array
+	      [token] =&gt; Array
+	        [0] =&gt; 307
+	        [1] =&gt; add_action
+	        [2] =&gt; 65
+	      [file] =&gt; Array
+	        [dir] =&gt; ../wp
+	        [file] =&gt; wp-activate.php
+	        [fullpath] =&gt; ../wp/wp-activate.php
+	        [friendly_name] =&gt; wp-activate.php
+	      [hook] =&gt; wp_head
+	      [function_to_add] =&gt; &#39;wpmu_activate_stylesheet&#39;
+	      [priority] =&gt; 10 (default)
+	      [arguments] =&gt; 1 (default)
+	```
 	
-	We have output for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
+	An example of the raw array data for `wp_head`.
+
+	</section>
 </section>
 
-<section data-markdown>
-	#Post-processing
 
-	Once the large data arrays are gathered, the output is gathered and sent out. The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
+<section data-markdown>
+	# Post-processing
+
+	- The data arrays (hooks, filenames) have been gathered
+	- The output is gathered, formatted and sent out. 
+
+	The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
 	
-	We have output for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
+	There are output processors for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
 </section>
-
-
-
-
-
-
 
 <section data-markdown>
-<h2 id="example-1">EXAMPLE:</h2>
-<pre><code>[wp_head] =&gt; Array
-    [0] =&gt; Array
-      [token] =&gt; Array
-        [0] =&gt; 307
-        [1] =&gt; add_action
-        [2] =&gt; 47
-      [file] =&gt; Array
-        [dir] =&gt; ../wp
-        [file] =&gt; wp-activate.php
-        [fullpath] =&gt; ../wp/wp-activate.php
-        [friendly_name] =&gt; wp-activate.php
+	# WP-FASE's Future
 
-      [hook] =&gt; wp_head
-      [function_to_add] =&gt; &#39;do_activate_header&#39;
-      [priority] =&gt; 10 (default)
-      [arguments] =&gt; 1 (default)
-    [1] =&gt; Array
-      [token] =&gt; Array
-        [0] =&gt; 307
-        [1] =&gt; add_action
-        [2] =&gt; 65
-      [file] =&gt; Array
-        [dir] =&gt; ../wp
-        [file] =&gt; wp-activate.php
-        [fullpath] =&gt; ../wp/wp-activate.php
-        [friendly_name] =&gt; wp-activate.php
-      [hook] =&gt; wp_head
-      [function_to_add] =&gt; &#39;wpmu_activate_stylesheet&#39;
-      [priority] =&gt; 10 (default)
-      [arguments] =&gt; 1 (default)</code></pre>
-      <p>An example of a <tt>wp_head</tt> data structure.</p>
+	There are a few TODO items:
+
+	- Better HTML output (probably with frames like _phpDocumentor_)
+	- More flexible themes / styling
+	- Additional output processors
+	- Compile into a single PHAR file for easy installation
+
+	## Can we get some uptake here?
+
+	- Please start using WP-FASE
+	- Feedback and contributions would be greatly appreciated
+
 </section>
 
+<section data-markdown>
+	# References
 
+	## Public GitHub repo
+	- __https://github.com/crowdfavorite/wp-fase__
+
+	## This presentation deck
+	- __http://mospaw.com/wp-fase-reveal__
+
+</section>
 
 			</div>
 
@@ -315,6 +352,10 @@
 				progress: true,
 				history: true,
 				center: true,
+
+				width: 1200,
+    			height: 900,
+
 
 				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
 				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
