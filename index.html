@@ -39,145 +39,211 @@
 	<body>
 
 		<div class="reveal">
-
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
 
 
-<section>
+<section class="title" data-background="transparent">
 	<h1>WP-FASE</h1>
-	<h5>Document those hooks!</h5>
-	<h6><a href="https://github.com/crowdfavorite/wp-fase">https://github.com/crowdfavorite/wp-fase</a></h6>
+	<h5>Documentation for Hookers</h5>
+	<h6><a href="https://github.com/crowdfavorite/wp-fase">GitHub.com/CrowdFavorite/WP-Fase</a></h6>
 </section>
 
 
-<section>
-	<h1 id="the-problem">The problem</h1>
+<section data-markdown>
+	# The Problem
 
-	<p>Hooks (filters and actions) in WordPress are extremely powerful, but also complex with “lots of moving parts”. Diagnosing problems requires a lot of manual work. Having a road map of calls to <tt>add_action, add_filter, apply_filters, do_action,</tt> and <tt>do_action_ref_array</tt> for a particular code base would be handy.</p>
-	<p>There is no easy way to capture the various hooks and calls to them in WordPress. Domain-specific documentation is weak or non-existent.</p>
-	<p>We looked high and low for a utility that did this, but none existed.</p>
+	- WordPress Hooks (filters and actions) are extremely powerful
+	- They are also complex with “lots of moving parts”. 
+
+	Diagnosing problems can require a lot of manual work. Having a road map of these calls 
+	for a particular code base would be handy:
+
+	- `add_action`
+	- `add_filter`
+	- `apply_filters`
+	- `do_action`
+	- `do_action_ref_array` 
+
+</section>
+
+<section data-markdown>
+	# The State of the Doc
+
+	We looked high and low for a utility that did this, but none existed.
+
+	- There is no easy or automatic way to capture the various hooks and calls to them in WordPress code. 
+	- Documentation for plugins and themes can be weak or non-existent.
+	- Documentation tools like _phpDoucmentor_  don’t go “inside” functions where most of the hooks and related calls are located
+	
+	## Conclusion
+
+	We needed to write our own utility to generate this information.
+
 </section>
 
 
-<section>
-	<h1 id="the-solution-wp-fase">The solution: WP-FASE</h1>
+<section data-markdown>
+	# The solution: WP-FASE
 
-	<p><i>phpDoucmentor</i> and similar tools don’t go “inside” functions where most of the hooks and related calls are located. So we wrote WP-FASE to do this.</p>
-	<p>What is it?</p>
-	<p style><b>W</b>ord<br>
-		<b>P</b>ress <br>
-		<b>F</b>ilter and <br>
-		<b>A</b>ction <br>
-		<b>S</b>yntax <br>
-		<b>E</b>xtractor</p>
+	What is it?
+	
+	- **W**ord**P**ress 
+	- **F**ilter and 
+	- **A**ction 
+	- **S**yntax 
+	- **E**xtractor
+
+	## And it does?
+
+	WP-FASE traverses an arbitrary given folder to find all instances of WordPress hooks. It has HTML, JSON, or plain text output. 
+</section>
+
+<section data-markdown>
+	# Invoking WP-FASE
+
 </section>
 
 
-<section>
-	<h1 id="holy-cow-thats-complicated">Holy cow that’s complicated</h1>
-	<p>Hoping to extend an existing tool, we tried to add to the latest incarnation of <i>phpDocumentor</i>, but the code was in alpha state at best.</p>
+<section data-markdown>
+	# What does it do?
 
-	<p>The next approach was to analyze code and extract only the parts we needed.</p>
-	<p>It was starting to look like we were going to be in Regular Expression hell for the foreseeable future, analyzing lots of code, trying to figure out how to get parameters, docblocks and other goodies related to the hook calls.</p>
+	The overall approach is to analyze code and extract only the parts we needed.
+
+	- This is much easier said than done. 
+	- Code can be pretty complicated. 
+
+	## RegEx to the Rescue?
+
+	The initial appraoch was starting to look like we were going to be in Regular Expression hell for the foreseeable future, analyzing lots of code, trying to figure out how to get parameters, docblocks and other goodies related to the hook calls.
+
 </section>
 
 
-<section>
-	<h1 id="tokenizer">Tokenizer</h1>
+<section class="transparent">
+	<section data-markdown>
+		# NO! Tokenizer to the Rescue
 
-	<p>After a few minutes of regex despair I started to do a little research and discovered the PHP Tokenizer, a built-in extension since PHP 4.3.0.</p>
-	<p><a href="http://www.php.net/manual/en/function.token-get-all.php">http://www.php.net/manual/en/function.token-get-all.php</a></p>
-	<p>The tokenizer splits arbitrary source (or any length) into an array of PHP tokens. These PHP tokens are very valuable pieces of information and eliminate the need for complicated regular expressions and other lexical gymnastics.</p>
+		After a few minutes of RegEx despair we researched alternate methods and found the **PHP Tokenizer**.
+
+		- Built-in extension since PHP 4.3.0.</p>
+		- **http://www.php.net/manual/en/function.token-get-all.php**
+
+		## So what does Tokenizing do?
+
+		The tokenizer splits any arbitrary PHP source into an array of PHP tokens. These PHP tokens are very valuable pieces of information and eliminate the need for complicated regular expressions and other lexical gymnastics.
+
+	</section>
+
+
+	<section data-markdown data-background="#006600" style="background: transparent;">
+		# _Coder Zone:_ What’s in a token?
+
+		The tokens returned by PHP's tokenizer contain either a single character (`;`, `.`, `&gt;`, `!`, etc.) or a three-element array containing:
+
+		- **[0]** Token index (PHP language part) 
+		- **[1]** String content of the original token 
+		- **[2]** Line number (as of PHP 5.2.2)
+		
+		## Constants are good 
+
+		Is is beneficial to define constants for the various token pieces (`TOKEN_INDEX`, `TOKEN_STRING`, `TOKEN_LINE_NUMBER`) in order to avoid magic numbers.
+	</section>
+
+	<section data-markdown data-background="#006600" style="background: transparent;">
+		# _Coder Zone:_ Even more token information...
+
+		The token index is a numeric value that reveals the part of the PHP language that was found. The `token_name($value)` function returns the symbolic name (`T_*`) for the given numeric value. 
+
+		Token values vary from version to version of PHP. This means that:
+
+		- The numeric value of a token is unreliable. 
+		- Code should reference the `T_*` constants instead.
+
+		List of tokens: **http://www.php.net/manual/en/tokens.php**
+	</section>
+
+	<section data-markdown data-background="#006600" style="background: transparent;">
+		# _Coder Zone:_ Token examples
+
+		Examples of raw tokens.
+
+		```
+		[0] =&gt; 368 (T_OPEN_TAG)
+		[1] =&gt; &lt;?php
+		[2] =&gt; 1
+
+		[0] =&gt; 367 (T_DOC_COMMENT)
+		[1] =&gt; /**
+		 * Front to the WordPress application. This file doesn&#39;t do anything, but loads
+		 * wp-blog-header.php which does and tells WordPress to load the theme.
+		 *
+		 * @package WordPress
+		 */
+		[2] =&gt; 2
+
+		[0] =&gt; 371 (T_WHITESPACE)
+		[1] =&gt; &nbsp;
+		[2] =&gt; 7
+
+
+		[0] =&gt; 367 (T_DOC_COMMENT)
+		[1] =&gt; /**
+		 * Tells WordPress to load the WordPress theme and output it.
+		 *
+		 * @var bool
+		 */
+		[2] =&gt; 9
+
+		[0] =&gt; 371 (T_WHITESPACE)
+		[1] =&gt; &nbsp;
+		[2] =&gt; 13
+
+		[0] =&gt; 307 (T_STRING)
+		[1] =&gt; define
+		[2] =&gt; 14
+
+		[0] =&gt; 315 (T_CONSTANT_ENCAPSED_STRING)
+		[1] =&gt; &#39;WP_USE_THEMES&#39;
+		[2] =&gt; 14
+		```
+	</section>
+
+</section>
+
+<section data-markdown>
+	# Parser Processors 
+
+	Each hook type we are looking for has a separate processor due to the various syntaxes, but they behave more or less the same putting found information into two arrays, one indexed by the hook name and another indexed by filename and line number.
+
+	There are actually two levels of processors, a generic one and a hook-specific one. The hook-specific processors call the generic one to get call parameters and docblocks.
+
 </section>
 
 
-<section>
-	<h1 id="whats-in-a-token">What’s in a token?</h1>
+<section data-markdown>
+	#Post-processing
 
-	<p>The array elements returned by the tokenizer contain either a single character (;, ., &gt;, !, etc.) or a three-element array containing the token index in element 0, the string content of the original token in element 1 and the line number in element 2 (as of 5.2.2).</p>
-	<p>I have found it beneficial to define constants for the various token pieces (<tt>TOKEN_INDEX, TOKEN_STRING, TOKEN_LINE_NUMBER</tt>) in order to avoid magic numbers.</p>
+	Once the large data arrays are gathered, the output is gathered and sent out. The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
+	
+	We have output for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
+</section>
+
+<section data-markdown>
+	#Post-processing
+
+	Once the large data arrays are gathered, the output is gathered and sent out. The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.
+	
+	We have output for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...
 </section>
 
 
-<section>
-	<h1 id="more-token-information">More token information</h1>
-
-	<p>The token index is a numeric value that reveals the part of the PHP language that was found. It’s important to note that these values are automatically generated based on PHP’s underlying parser infrastructure. This means that the numeric value of a token may change between two PHP versions. This also means that code should never rely directly on the original <tt>T_*</tt> values but reference the constants instead.</p>
-	<p>List of tokens: <a href="http://www.php.net/manual/en/tokens.php">http://www.php.net/manual/en/tokens.php</a></p>
-</section>
 
 
-<section>
-	<h1 id="breaking-it-down">Breaking it down</h1>
-
-	<p>The token_name($value) function returns the symbolic name (<tt>T_*</tt>) for the given numeric value. This gives us the information we need to continue.</p>
-	<p>The parser simply looks for the various strings (<tt>add_action, do_action</tt>, etc.) and then processes them accordingly.</p>
-</section>
 
 
-<section>
-<h2 id="example">EXAMPLE:</h2>
-<pre><code>[0] =&gt; 368 (T_OPEN_TAG)
-[1] =&gt; &lt;?php
 
-
-[0] =&gt; 367 (T_DOC_COMMENT)
-[1] =&gt; /**
- * Front to the WordPress application. This file doesn&#39;t do anything, but loads
- * wp-blog-header.php which does and tells WordPress to load the theme.
- *
- * @package WordPress
- */
-[2] =&gt; 2
-
-[0] =&gt; 371 (T_WHITESPACE)
-[1] =&gt; 
-[2] =&gt; 7
-
-
-[0] =&gt; 367 (T_DOC_COMMENT)
-[1] =&gt; /**
- * Tells WordPress to load the WordPress theme and output it.
- *
- * @var bool
- */
-[2] =&gt; 9
-
-[0] =&gt; 371 (T_WHITESPACE)
-[1] =&gt; 
-
-[2] =&gt; 13
-
-[0] =&gt; 307 (T_STRING)
-[1] =&gt; define
-[2] =&gt; 14
-
-[0] =&gt; 315 (T_CONSTANT_ENCAPSED_STRING)
-[1] =&gt; &#39;WP_USE_THEMES&#39;
-[2] =&gt; 14</code></pre>
-      <p>An example of raw tokens.</p>
-</section>
-
-
-<section>
-	<h1 id="parser-processors">Parser Processors</h1>
-
-	<img src="parser.png" width="400" align="right" style="float:right; margin: 0 0 5px 20px;">
-	<p>Each hook type we are looking for has a separate processor due to the various syntaxes, but they behave more or less the same putting found information into two arrays, one indexed by the hook name and another indexed by filename and line number.</p>
-	<p>There are actually two levels of processors, a generic one and a hook-specific one. The hook-specific processors call the generic one to get call parameters and docblocks.</p>
-</section>
-
-
-<section>
-	<h1 id="post-processing">Post-processing</h1>
-	<img src="monitor.jpg" width="400" align="right" style="float:right; margin: 0 0 5px 20px;">
-	<p>Once the large data arrays are gathered, the output is gathered and sent out. The data is in a standard format, so the processors simply iterate the arrays and assemble the correct information.</p>
-	<p>We have output for <tt>HTML</tt>, <tt>JSON</tt>, and plain text. Other output formats are easy to generate...</p>
-</section>
-
-
-<section>
+<section data-markdown>
 <h2 id="example-1">EXAMPLE:</h2>
 <pre><code>[wp_head] =&gt; Array
     [0] =&gt; Array
